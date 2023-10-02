@@ -15,6 +15,7 @@ io.on("connection", (socket) => {
 
   // Chat message
   socket.on("send-chat-message", (data) => {
+    console.log(`${users[socket.id]}: ${data}`);
     socket.broadcast.emit("chat-message", {
       user: users[socket.id],
       msg: data,
@@ -25,5 +26,15 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     socket.broadcast.emit("user-disconnected", users[socket.id]);
     delete users[socket.id];
+  });
+
+  // User Typing
+  socket.on("typing", (user) => {
+    socket.broadcast.emit("user-typing", user);
+  });
+
+  // User Stop Typing
+  socket.on("stop-typing", (user) => {
+    socket.broadcast.emit("user-stop-typing", user);
   });
 });

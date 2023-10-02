@@ -12,8 +12,14 @@ function App() {
   );
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
+  const [typingUser, setTypingUser] = useState("");
+  const [dotCount, setDotCount] = useState(1);
 
   useEffect(() => {
+    const interval = setInterval(() => {
+      setDotCount((prevCount) => (prevCount % 3) + 1);
+    }, 500);
+
     socket = socketioclient(ENDPOINT);
 
     socket.emit("new-user", username);
@@ -39,23 +45,41 @@ function App() {
       ]);
     });
 
+    socket.on("user-typing", (user) => {
+      setTypingUser(user);
+    });
+
+    socket.on("user-stop-typing", (user) => {
+      if (typingUser == user) {
+        setTypingUser("");
+      }
+    });
+
     return () => {
+      clearInterval(interval);
       socket.off("chat-message");
       socket.off("user-connected");
       socket.off("user-disconnected");
+      socket.off("user-typing");
+      socket.on("user-stop-typing");
     };
   }, []);
 
   return (
     <main>
       <h1>Neo Chat App React</h1>
-      <Chatbox chat={chat} />
-      <Sendbox message={message} setMessage={setMessage} setChat={setChat} />
+      <Chatbox chat={chat} typingUser={typingUser} dotCount={dotCount} />
+      <Sendbox
+        username={username}
+        message={message}
+        setMessage={setMessage}
+        setChat={setChat}
+      />
     </main>
   );
 }
 
-function Chatbox({ chat }) {
+function Chatbox({ chat, typingUser, dotCount }) {
   return (
     <div className="chat-container">
       <div className="msg left">I choose you Bulbasaur</div>
@@ -67,14 +91,25 @@ function Chatbox({ chat }) {
           </div>
         );
       })}
+      {typingUser && (
+        <div className="msg left">
+          {typingUser} is typing
+          {dotCount == 1 ? "." : dotCount == 2 ? ".." : "..."}
+        </div>
+      )}
     </div>
   );
 }
 
-function Sendbox({ message, setMessage, setChat }) {
+function Sendbox({ username, message, setMessage, setChat }) {
   function writeMessage(e) {
     const curMessage = e.target.value;
     setMessage(curMessage);
+    if (curMessage == "") {
+      socket.emit("stop-typing", username);
+    } else {
+      socket.emit("typing", username);
+    }
   }
   function handleSubmit(e) {
     e.preventDefault();
@@ -84,6 +119,7 @@ function Sendbox({ message, setMessage, setChat }) {
     ]);
     socket.emit("send-chat-message", message);
     setMessage("");
+    socket.emit("stop-typing", username);
   }
   return (
     <form className="send-container">
