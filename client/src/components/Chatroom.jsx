@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import Home from "./Home";
 
-function Chatroom({ socket, name }) {
+function Chatroom({ rooms, socket, name, roomInfo }) {
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
@@ -17,14 +17,10 @@ function Chatroom({ socket, name }) {
       setDotCount((prevCount) => (prevCount % 3) + 1);
     }, 500);
 
-    socket.emit("room-id", id);
-
-    socket.emit("new-user", name);
-
     socket.on("user-connected", (user) => {
       setChat((prevChat) => [
         ...prevChat,
-        { message: `${user} joined the chat`, dir: "left" },
+        { message: `${user.name} joined the chat`, dir: "left" },
       ]);
     });
 
@@ -68,7 +64,7 @@ function Chatroom({ socket, name }) {
 
   return (
     <main>
-      <h1>Neo Chat App React</h1>
+      <div className="text-2xl py-4">Neo Chat App React</div>
       <Chatbox chat={chat} typingUser={typingUser} dotCount={dotCount} />
 
       <Sendbox
@@ -77,6 +73,7 @@ function Chatroom({ socket, name }) {
         message={message}
         setMessage={setMessage}
         setChat={setChat}
+        roomInfo={roomInfo}
       />
     </main>
   );

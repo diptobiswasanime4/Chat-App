@@ -1,15 +1,23 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { v4 } from "uuid";
 
-function Home({ name, setName }) {
+function Home({ name, setName, rooms, setRooms, socket }) {
   const navigate = useNavigate();
-  const [selectedRoom, setSelectedRoom] = useState("");
-  const [rooms, setRooms] = useState(["JS", "Python", "SQL"]);
+  const [selectedRoom, setSelectedRoom] = useState(rooms[0]);
 
   function submitName() {
+    const roomDetails = rooms.find((room) => room.roomName == selectedRoom);
+    console.log(roomDetails);
+    socket.emit("new-user", { name, ...roomDetails });
     navigate(`/chatroom`);
   }
+
+  useEffect(() => {
+    socket.on("existing-rooms", (data) => {
+      setRooms(data);
+    });
+  }, []);
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -27,17 +35,26 @@ function Home({ name, setName }) {
         value={selectedRoom}
         onChange={(e) => setSelectedRoom(e.target.value)}
       >
+        <option>Select a room</option>
         {rooms.map((room, index) => (
           <option key={index} value={room}>
-            {room}
+            {room.roomName}
           </option>
         ))}
       </select>
-      <div
-        onClick={submitName}
-        className="bg-blue-600 hover:bg-blue-500 mt-4 py-1 px-3 rounded-md cursor-pointer text-white text-xl"
-      >
-        Join
+      <div className="flex gap-4">
+        <div
+          onClick={(e) => navigate("/create-room")}
+          className="bg-blue-600 hover:bg-blue-500 py-1 px-3 rounded-md cursor-pointer text-white text-xl"
+        >
+          Create Room
+        </div>
+        <div
+          onClick={submitName}
+          className="bg-blue-600 hover:bg-blue-500 py-1 px-3 rounded-md cursor-pointer text-white text-xl"
+        >
+          Join
+        </div>
       </div>
     </div>
   );

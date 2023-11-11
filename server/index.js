@@ -18,43 +18,59 @@ const io = require("socket.io")(PORT, {
 let users = {};
 
 io.on("connection", (socket) => {
-  let roomId = v4();
-  const ChatDoc = new Chat({
-    roomId: roomId,
-    chat: [],
+  // Add Room
+  socket.on("new-room", async (data) => {
+    console.log(data);
+    const roomDoc = new Chat({
+      roomId: data.roomId,
+      roomName: data.roomName,
+      isGroupChat: data.isGroupChat,
+      chat: [],
+      users: [],
+    });
+    await roomDoc.save();
   });
 
-  ChatDoc.save();
+  // Existing Rooms
+  async function existingRooms() {
+    const rooms = await Chat.find({});
+    console.log("Rooms: ", rooms);
+    socket.emit("existing-rooms", rooms);
+  }
+  existingRooms();
 
   // New User connected
-  socket.on("new-user", (user) => {
-    users[socket.id] = user;
+  socket.on("new-user", async (user) => {
+    console.log("User:", user);
+    users[socket.id] = user.name;
+    const ChatDoc = await Chat.findOneAndUpdate(
+      {
+        roomId: user.roomId,
+      },
+      {
+        $push: { users: user.name },
+      }
+    );
     socket.broadcast.emit("user-connected", user);
   });
 
   // Chat message
   socket.on("send-chat-message", (data) => {
-    const message = { user: users[socket.id], msg: data };
-    const ChatDoc = Chat.findOneAndUpdate(
-      {
-        roomId: roomId,
-      },
-      {
-        $push: { chat: message },
-      },
-      {},
-      (err, data) => {
-        if (err) {
-          console.log("Error saving chat.", err);
-        } else {
-          console.log("Saved chat in DB.", data);
-        }
-      }
-    );
-    console.log(`${users[socket.id]}: ${data}`);
+    console.log("Sendchatmessage:", data);
+    const message = { user: users[socket.id], msg: data.message };
+    // const ChatDoc = Chat.findOneAndUpdate(
+    //   {
+    //     roomId: roomId,
+    //   },
+    //   {
+    //     $push: { chat: message },
+    //   },
+    //   {}
+    // );
+    console.log(`${users[socket.id]}: ${data.message}`);
     socket.broadcast.emit("chat-message", {
       user: users[socket.id],
-      msg: data,
+      msg: data.message,
     });
   });
 

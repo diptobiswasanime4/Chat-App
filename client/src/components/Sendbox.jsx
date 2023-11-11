@@ -1,6 +1,6 @@
 import React from "react";
 
-function Sendbox({ socket, name, message, setMessage, setChat }) {
+function Sendbox({ socket, name, message, setMessage, setChat, roomInfo }) {
   function writeMessage(e) {
     const curMessage = e.target.value;
     setMessage(curMessage);
@@ -16,7 +16,7 @@ function Sendbox({ socket, name, message, setMessage, setChat }) {
       ...prevChat,
       { message: "You: " + message, dir: "right" },
     ]);
-    socket.emit("send-chat-message", message);
+    socket.emit("send-chat-message", { ...roomInfo, message });
     setMessage("");
     socket.emit("stop-typing", name);
   }
