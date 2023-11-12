@@ -1,35 +1,17 @@
 import React from "react";
 
-function Sendbox({ socket, name, message, setMessage, setChat, roomInfo }) {
-  function writeMessage(e) {
-    const curMessage = e.target.value;
-    setMessage(curMessage);
-    if (curMessage == "") {
-      socket.emit("stop-typing", name);
-    } else {
-      socket.emit("typing", name);
-    }
-  }
-  function handleSubmit(e) {
-    e.preventDefault();
-    setChat((prevChat) => [
-      ...prevChat,
-      { message: "You: " + message, dir: "right" },
-    ]);
-    socket.emit("send-chat-message", { ...roomInfo, message });
-    setMessage("");
-    socket.emit("stop-typing", name);
-  }
+function Sendbox() {
   return (
-    <form className="send-container">
+    <div className="flex gap-2 w-3/4">
       <input
+        className="text-lg w-full"
         type="text"
         placeholder="Enter message"
-        value={message}
-        onChange={writeMessage}
       />
-      <button onClick={handleSubmit}>Send</button>
-    </form>
+      <button className="bg-blue-600 hover:bg-blue-500 text-white py-1 px-3 text-lg rounded-md">
+        Send
+      </button>
+    </div>
   );
 }
 

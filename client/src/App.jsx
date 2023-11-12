@@ -1,56 +1,67 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
-import Chatroom from "./components/Chatroom";
-import CreateRoom from "./components/CreateRoom";
 import socketioclient from "socket.io-client";
-import Home from "./components/Home";
+import { v4 } from "uuid";
+
+import Register from "./components/Register";
+import Chatroom from "./components/Chatroom";
 
 const ENDPOINT = "http://localhost:3000";
 let socket = socketioclient(ENDPOINT);
 
 function App() {
-  const [name, setName] = useState("");
-  const [rooms, setRooms] = useState([]);
-  const [roomInfo, setRoomInfo] = useState({
-    roomId: "",
-    roomName: "",
-    isGroupChat: true,
+  const [curUser, setCurUser] = useState({
+    userId: "",
+    userName: "",
+    partOfChats: [],
   });
-
+  const [curRoom, setCurRoom] = useState({
+    roomId: "1",
+    roomName: "Common",
+    isGroupChat: true,
+    chat: [],
+    users: [],
+  });
+  const [rooms, setRooms] = useState([
+    {
+      roomId: "1",
+      roomName: "Common",
+      isGroupChat: true,
+      chat: [],
+      users: [],
+    },
+  ]);
+  const [users, setUsers] = useState([]);
   return (
     <Routes>
       <Route
         path="/"
         element={
-          <Home
-            socket={socket}
-            name={name}
-            setName={setName}
-            setRooms={setRooms}
+          <Register
+            curRoom={curRoom}
+            setCurRoom={setCurRoom}
             rooms={rooms}
-          />
-        }
-      ></Route>
-      <Route
-        path="create-room"
-        element={
-          <CreateRoom
-            roomInfo={roomInfo}
-            setRoomInfo={setRoomInfo}
-            socket={socket}
             setRooms={setRooms}
+            curUser={curUser}
+            setCurUser={setCurUser}
+            users={users}
+            setUsers={setUsers}
           />
         }
       ></Route>
       <Route
-        path="chatroom"
+        path="/chatroom"
         element={
           <Chatroom
+            curRoom={curRoom}
+            setCurRoom={setCurRoom}
             rooms={rooms}
-            name={name}
-            socket={socket}
-            roomInfo={roomInfo}
+            setRooms={setRooms}
+            curUser={curUser}
+            setCurUser={setCurUser}
+            users={users}
+            setUsers={setUsers}
           />
         }
       ></Route>
