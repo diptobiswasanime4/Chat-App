@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import "./App.css";
 import socketioclient from "socket.io-client";
 import pkmnTrainers from "./data";
+import { Routes, Route } from "react-router-dom";
 
 const ENDPOINT = "http://localhost:3000";
 let socket;
@@ -66,8 +66,8 @@ function App() {
   }, []);
 
   return (
-    <main>
-      <h1>Neo Chat App React</h1>
+    <div className="flex flex-col items-center gap-4 pt-4 pb-16 bg-green-100">
+      <div className="text-2xl">Surf Chat Dev</div>
       <Chatbox chat={chat} typingUser={typingUser} dotCount={dotCount} />
       <Sendbox
         username={username}
@@ -75,24 +75,31 @@ function App() {
         setMessage={setMessage}
         setChat={setChat}
       />
-    </main>
+    </div>
   );
 }
 
 function Chatbox({ chat, typingUser, dotCount }) {
   return (
-    <div className="chat-container">
-      <div className="msg left">I choose you Bulbasaur</div>
-      <div className="msg right">I choose you Charmander</div>
+    <div className="bg-yellow-200 flex flex-col gap-2 p-2 overflow-y-auto w-2/3 h-[300px] rounded-lg shadow-lg border-2 border-black">
+      <div className="bg-orange-500 text-white p-1 rounded-md w-2/3 mr-auto">
+        I choose you Bulbasaur
+      </div>
+      <div className="bg-orange-500 text-white p-1 rounded-md w-2/3 ml-auto">
+        I choose you Charmander
+      </div>
       {chat.map((msg, index) => {
         return (
-          <div key={index} className={`msg ${msg.dir}`}>
+          <div
+            key={index}
+            className={`bg-orange-500 text-white p-1 rounded-md w-2/3 ${msg.dir}`}
+          >
             {msg.message}
           </div>
         );
       })}
       {typingUser && (
-        <div className="msg left">
+        <div className="bg-orange-500 text-white p-1 rounded-md w-2/3 mr-auto">
           {typingUser} is typing
           {dotCount == 1 ? "." : dotCount == 2 ? ".." : "..."}
         </div>
@@ -122,14 +129,20 @@ function Sendbox({ username, message, setMessage, setChat }) {
     socket.emit("stop-typing", username);
   }
   return (
-    <form className="send-container">
+    <form className="flex w-2/3 gap-2">
       <input
+        className="w-full text-xl shadow-md rounded-md p-1"
         type="text"
         placeholder="Enter message"
         value={message}
         onChange={writeMessage}
       />
-      <button onClick={handleSubmit}>Send</button>
+      <button
+        onClick={handleSubmit}
+        className="bg-green-600 hover:bg-green-700 w-1/4 text-white rounded-full text-xl shadow-md"
+      >
+        Send
+      </button>
     </form>
   );
 }
